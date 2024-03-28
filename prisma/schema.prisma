@@ -37,13 +37,15 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
+  id               String    @id @default(cuid())
+  name             String?
+  email            String?   @unique
+  emailVerified    DateTime?
+  image            String?
+  accounts         Account[]
+  sessions         Session[]
+  sentMessages     Message[] @relation("MessageSender")
+  receivedMessages Message[] @relation("MessageReceiver")
 }
 
 model VerificationToken {
@@ -52,4 +54,22 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  messageId  String? // Pour pouvoir répondre à un message, peut-être nullable si c'est un nouveau message sans parent
+  senderId   String // Fait référence à l'utilisateur qui a envoyé le message
+  receiverId String // Fait référence à l'utilisateur qui a reçu le message
+  text       String
+  date       DateTime
+  seen       Boolean  @default(false)
+
+  // Relations
+  sender        User      @relation(name: "MessageSender", fields: [senderId], references: [id])
+  receiver      User      @relation(name: "MessageReceiver", fields: [receiverId], references: [id])
+  parentMessage Message?  @relation(name: "Reply", fields: [messageId], references: [id])
+  replies       Message[] @relation("Reply")
+
+  @@unique([id, messageId])
 }

@@ -1,25 +1,33 @@
 import NextAuth, {NextAuthOptions} from "next-auth"
 import GithubProvider from "next-auth/providers/github";
-   import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import {prisma} from "@/src/lib/prisma";
+import GoogleProvider from "next-auth/providers/google";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import {prisma} from "@/prisma/prisma";
 
 
 const githubId = process.env.GITHUB_ID
 const githubSecret = process.env.GITHUB_SECRET
+const googleId = process.env.GOOGLE_CLIENT_ID
+const googleSecret = process.env.GOOGLE_CLIENT_SECRET
 
-if (!githubId || !githubSecret) {
-   throw new Error("GITHUB_ID and GITHUB_SECRET must be set")
+if (!githubId || !githubSecret || !googleId || !googleSecret) {
+   console.log(githubId, githubSecret, googleId, googleSecret)
+   throw new Error("Missing environment variables for authentication providers.")
 }
 
 
 
 export const authOptions: NextAuthOptions = {
    providers: [
+      // ...add more providers here
       GithubProvider({
          clientId: githubId,
          clientSecret: githubSecret,
       }),
-      // ...add more providers here
+      GoogleProvider({
+         clientId: googleId,
+         clientSecret: googleSecret,
+      })
    ],
    adapter: PrismaAdapter(prisma),
    callbacks: {
@@ -31,7 +39,6 @@ export const authOptions: NextAuthOptions = {
    }
 }
 
-// export default NextAuth(authOptions);
 
 const handler = NextAuth(authOptions)
 
